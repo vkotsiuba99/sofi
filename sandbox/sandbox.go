@@ -39,7 +39,16 @@ func NewSandbox(language string, code []byte) (*Sandbox, error) {
 		return nil, err
 	}
 
-	runner := &PythonRunner
+	var runner *runner
+	for _, r := range runners {
+		if language == r.Name {
+			runner = &r
+		}
+	}
+
+	if runner == nil {
+		return nil, fmt.Errorf("no language found with name %s", language)
+	}
 
 	ctx := context.Background()
 	cli, err := client.NewClientWithOpts()
@@ -55,7 +64,7 @@ func NewSandbox(language string, code []byte) (*Sandbox, error) {
 		return nil, err
 	}
 
-	fileName := "code.py"
+	fileName := "code" + runner.Ext
 	filePath := path.Join(sourceVolumePath, fileName)
 	err = ioutil.WriteFile(filePath, code, 0755)
 	if err != nil {
