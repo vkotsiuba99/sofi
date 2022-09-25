@@ -23,15 +23,15 @@ func main() {
 		}
 	}()
 
-	code := `package main
-import "fmt"
-	
-func main() {
-	fmt.Println("Hello World")
+	code := `#include <stdio.h>
+int main()
+{
+    printf("Hello World");
+    return 0;
 }
 `
 
-	s, err := sandbox.NewSandbox("go", []byte(code))
+	s, err := sandbox.NewSandbox("c", []byte(code))
 	if err != nil {
 		panic(err)
 	}
