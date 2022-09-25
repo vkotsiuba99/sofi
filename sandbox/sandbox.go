@@ -44,6 +44,7 @@ func NewSandbox(language string, code []byte) (*Sandbox, error) {
 	for _, r := range runners {
 		if language == r.Name {
 			runner = &r
+			break
 		}
 	}
 
