@@ -2,6 +2,8 @@ package sofi
 
 import (
 	"fmt"
+	"github.com/urfave/cli"
+	"log"
 	"os"
 	"os/signal"
 	"sofi/sandbox"
@@ -10,6 +12,27 @@ import (
 )
 
 func main() {
+	app := cli.NewApp()
+	app.Name = "sofi"
+	app.Usage = "Use the sofi code execution engine to run your code."
+	app.Commands = []cli.Command{
+		{
+			Name:  "execute",
+			Usage: "Execute a test sofi code",
+			Action: func(ctx *cli.Context) error {
+				execute()
+				return nil
+			},
+		},
+	}
+
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func execute() {
 	c := make(chan os.Signal)
 
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
