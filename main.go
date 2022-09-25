@@ -31,13 +31,19 @@ func main() {
 	}
 	defer s.Clean()
 
+	stopTicking := make(chan bool)
 	go func() {
 		for t := range time.Tick(time.Second * 1) {
-			fmt.Println("ticking", t)
-			h, _ := time.ParseDuration("5s")
-			expireTime := s.LastTimestamp.Add(h)
-			if expireTime.Before(time.Now()) {
-				s.Clean()
+			select {
+			case <-stopTicking:
+				return
+			default:
+				fmt.Println("ticking", t)
+				h, _ := time.ParseDuration("5s")
+				expireTime := s.LastTimestamp.Add(h)
+				if expireTime.Before(time.Now()) {
+					s.Clean()
+				}
 			}
 		}
 	}()
@@ -50,4 +56,6 @@ func main() {
 	for _, op := range output {
 		fmt.Println(op.Body)
 	}
+
+	stopTicking <- true
 }
