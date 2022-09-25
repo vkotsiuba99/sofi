@@ -24,4 +24,15 @@ var runners = []runner{
 		MaxCPUs:         2,
 		MaxMemory:       128,
 	},
+	{
+		Name:            "go",
+		Ext:             ".go",
+		Image:           "golang:1.18-alpine",
+		BuildCmd:        "rm -rf go.mod && go mod init sofi && go build -v .",
+		RunCmd:          "./sofi",
+		Env:             []string{"GOPROXY=https://goproxy.io,direct"},
+		DefaultFileName: "code.go",
+		MaxCPUs:         2,
+		MaxMemory:       128,
+	},
 }
