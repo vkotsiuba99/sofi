@@ -19,8 +19,29 @@ func main() {
 		{
 			Name:  "execute",
 			Usage: "Execute a test sofi code",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:  "language",
+					Value: "python",
+					Usage: "Set the language for the sofi sandbox runner.",
+				},
+			},
 			Action: func(ctx *cli.Context) error {
-				execute()
+				language := ctx.String("language")
+
+				var runner *sandbox.Runner
+				for _, r := range sandbox.Runners {
+					if language == r.Name {
+						runner = &r
+						break
+					}
+				}
+
+				if runner == nil {
+					return fmt.Errorf("no language found with name %s", language)
+				}
+
+				execute(runner)
 				return nil
 			},
 		},
@@ -32,7 +53,7 @@ func main() {
 	}
 }
 
-func execute() {
+func execute(runner *sandbox.Runner) {
 	c := make(chan os.Signal)
 
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -46,9 +67,9 @@ func execute() {
 		}
 	}()
 
-	code := `var i = 42; console.log("Hello World " + i);`
+	code := runner.ExampleCode
 
-	s, err := sandbox.NewSandbox("javascript", []byte(code))
+	s, err := sandbox.NewSandbox(runner.Name, []byte(code))
 	if err != nil {
 		panic(err)
 	}
