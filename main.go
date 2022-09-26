@@ -2,7 +2,7 @@ package sofi
 
 import (
 	"fmt"
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"os/signal"
@@ -12,37 +12,39 @@ import (
 )
 
 func main() {
-	app := cli.NewApp()
-	app.Name = "sofi"
-	app.Usage = "Use the sofi code execution engine to run your code."
-	app.Commands = []cli.Command{
-		{
-			Name:  "execute",
-			Usage: "Execute a test sofi code",
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:  "language",
-					Value: "python",
-					Usage: "Set the language for the sofi sandbox runner.",
+	app := &cli.App{
+		Name:  "sofi",
+		Usage: "Use the sofi code execution engine to run your code.",
+		Commands: []*cli.Command{
+			{
+				Name:  "execute",
+				Usage: "Execute a test sofi code",
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:    "language",
+						Aliases: []string{"l"},
+						Value:   "python",
+						Usage:   "Set the language for the sofi sandbox runner.",
+					},
 				},
-			},
-			Action: func(ctx *cli.Context) error {
-				language := ctx.String("language")
+				Action: func(ctx *cli.Context) error {
+					language := ctx.String("language")
 
-				var runner *sandbox.Runner
-				for _, r := range sandbox.Runners {
-					if language == r.Name {
-						runner = &r
-						break
+					var runner *sandbox.Runner
+					for _, r := range sandbox.Runners {
+						if language == r.Name {
+							runner = &r
+							break
+						}
 					}
-				}
 
-				if runner == nil {
-					return fmt.Errorf("no language found with name %s", language)
-				}
+					if runner == nil {
+						return fmt.Errorf("no language found with name %s", language)
+					}
 
-				execute(runner)
-				return nil
+					execute(runner)
+					return nil
+				},
 			},
 		},
 	}
