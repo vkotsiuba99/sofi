@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"sofi/sandbox"
+	"strconv"
 	"syscall"
 	"time"
 )
@@ -129,9 +130,10 @@ func execute(runner *sandbox.Runner, code string) {
 		panic(err)
 	}
 
-	for _, op := range output {
-		fmt.Println(op)
-	}
+	fmt.Println("\n=== BUILD OUTPUT ===")
+	fmt.Printf("Error: %s, Body: %s\n\n", strconv.FormatBool(output[0].Error), output[0].Body)
+	fmt.Println("=== RUN OUTPUT ===")
+	fmt.Printf("Error: %s, Body: %s\n", strconv.FormatBool(output[1].Error), output[1].Body)
 
 	stopTicking <- true
 }
