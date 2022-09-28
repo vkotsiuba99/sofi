@@ -103,15 +103,21 @@ int main()
 		ExampleCode:     `console.log("Hello World");`,
 	},
 	{
-		Name:            "julia",
-		Ext:             ".jl",
-		Image:           "julia:1.7.1-alpine",
-		BuildCmd:        "",
-		RunCmd:          "julia code.jl",
+		Name:            "cpp",
+		Ext:             ".cpp",
+		Image:           "gcc:latest",
+		BuildCmd:        "gcc -v code.cpp -lstdc++ -o code",
+		RunCmd:          "./code",
 		Env:             []string{},
-		DefaultFileName: "code.jl",
+		DefaultFileName: "code.cpp",
 		MaxCPUs:         2,
 		MaxMemory:       128,
-		ExampleCode:     `print("Hello World")`,
+		ExampleCode: `#include <iostream>
+
+int main()
+{
+  std::cout << "Hello World" << std::endl;
+  return 0;
+}`,
 	},
 }
