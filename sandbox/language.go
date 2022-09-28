@@ -103,6 +103,18 @@ int main()
 		ExampleCode:     `console.log("Hello World");`,
 	},
 	{
+		Name:            "julia",
+		Ext:             ".jl",
+		Image:           "julia:1.7.1-alpine",
+		BuildCmd:        "",
+		RunCmd:          "julia code.jl",
+		Env:             []string{},
+		DefaultFileName: "code.jl",
+		MaxCPUs:         2,
+		MaxMemory:       128,
+		ExampleCode:     `print("Hello World")`,
+	},
+	{
 		Name:            "cpp",
 		Ext:             ".cpp",
 		Image:           "gcc:latest",
