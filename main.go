@@ -8,6 +8,7 @@ import (
 	"sofi/file"
 	"sofi/sandbox"
 	"strconv"
+	"strings"
 )
 
 func main() {
@@ -41,7 +42,7 @@ func main() {
 					},
 				},
 				Action: func(ctx *cli.Context) error {
-					language := ctx.String("language")
+					language := strings.ToLower(ctx.String("language"))
 
 					var sandboxLang *sandbox.Language
 					for _, l := range sandbox.Languages {
