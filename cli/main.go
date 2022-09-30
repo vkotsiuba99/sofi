@@ -9,47 +9,8 @@ import (
 	"sofi/sandbox"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 )
-
-func executeCode(wg *sync.WaitGroup) {
-	var sandboxLang *sandbox.Language
-	for _, l := range sandbox.Languages {
-		if "python" == l.Name {
-			sandboxLang = &l
-			break
-		}
-	}
-
-	mainCode, err := file.ExtractCodeOfFile("examples/python/app.py")
-	s, output, err := sandbox.Run(sandboxLang, mainCode, make([]sandbox.SandboxFile, 0), make([]sandbox.SandboxFile, 0))
-	if err != nil {
-		fmt.Printf("something went wrong while executing sandbox runner %s", err)
-		return
-	}
-
-	defer wg.Done()
-	defer s.Clean()
-
-	fmt.Println("\n=== BUILD OUTPUT ===")
-	fmt.Printf("Error: %s, Body: %s\n\n", strconv.FormatBool(output.BuildError), output.BuildBody)
-	fmt.Println("=== RUN OUTPUT ===")
-	fmt.Printf("Error: %s, Body: %s\n", strconv.FormatBool(output.RunError), output.RunBody)
-	fmt.Println("=== TEST OUTPUT ===")
-	fmt.Printf("Error: %s, Body: \n%s\n", strconv.FormatBool(output.TestError), output.TestBody)
-}
-
-func benchmark() {
-	max := 2
-	wg := new(sync.WaitGroup)
-	wg.Add(max)
-	for i := 0; i < max; i++ {
-		go executeCode(wg)
-	}
-
-	wg.Wait()
-}
 
 func main() {
 	app := &cli.App{
