@@ -40,7 +40,9 @@ var Languages = []Language{
 		MaxMemory:       128,
 		TestCommand:     "go test -v ./...",
 		ExampleCode: `package main
+
 import "fmt"
+
 func main() {
 	fmt.Println("Hello World")
 }`,
@@ -56,6 +58,7 @@ func main() {
 		MaxCPUs:         2,
 		MaxMemory:       128,
 		ExampleCode: `#include <stdio.h>
+
 int main()
 {
 	printf("Hello World");
@@ -112,6 +115,7 @@ int main()
 		DefaultFileName: "app.jl",
 		MaxCPUs:         2,
 		MaxMemory:       128,
+		TestCommand:     "julia exampleTest.jl",
 		ExampleCode:     `print("Hello World")`,
 	},
 	{
