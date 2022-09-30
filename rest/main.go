@@ -5,11 +5,13 @@ import (
 	"encoding/json"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/joho/godotenv"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"sofi/sandbox"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -71,12 +73,28 @@ func execute(w http.ResponseWriter, r *http.Request) {
 	}()
 }
 
+func loadOrigins(str string) []string {
+	result := strings.Split(str, ",")
+	for i := 0; i < len(result); i++ {
+		result[i] = strings.TrimSpace(result[i])
+	}
+
+	return result
+}
+
 func main() {
+	err := godotenv.Load("local.env")
+	if err != nil {
+		log.Fatalf("Error occurred while loading env file: %s", err)
+	}
+
+	origins := loadOrigins(os.Getenv("ORIGINS"))
+
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/execute", execute).Methods(http.MethodPost)
 
 	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
-	originsOk := handlers.AllowedOrigins([]string{"http://localhost:3000"}) // TODO: Change to env variable
+	originsOk := handlers.AllowedOrigins(origins)
 	methodsOk := handlers.AllowedMethods([]string{"GET", "POST", "PUT"})
 
 	server := http.Server{
