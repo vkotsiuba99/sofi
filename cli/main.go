@@ -1,4 +1,4 @@
-package sofi
+package cli
 
 import (
 	"fmt"
