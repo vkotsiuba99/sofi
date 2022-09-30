@@ -3,6 +3,7 @@ package load_test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/yudai/pp"
 	"io"
 	"log"
@@ -33,6 +34,7 @@ type serverResponse struct {
 
 type report struct {
 	Garbage       bool
+	GarbageReason string
 	Cause         string
 	Failed        bool
 	ExecutionTime time.Duration
@@ -95,7 +97,7 @@ func hitAndRun(wg *sync.WaitGroup, idx int, reports []report) {
 	wg.Done()
 }
 
-type ReportsSummary struct {
+type reportsSummary struct {
 	MaxExecutionTimeMs int64
 	AvgExecutionTimeMs int64
 	MinExecutionTimeMs int64
@@ -105,16 +107,17 @@ type ReportsSummary struct {
 	FailCount    int64
 	SuccessCount int64
 
-	SuccessRate float64
-	FailRate    float64
-	GarbageRate float64
+	SuccessRate    float64
+	FailRate       float64
+	GarbageRate    float64
+	GarbageReasons []string
 }
 
-func calculateReportsSummaries(iterationReports [][]report) []ReportsSummary {
-	var summaries []ReportsSummary
+func calculateReportsSummaries(iterationReports [][]report) []reportsSummary {
+	var summaries []reportsSummary
 
 	for _, reports := range iterationReports {
-		summary := ReportsSummary{
+		summary := reportsSummary{
 			MinExecutionTimeMs: math.MaxInt64,
 		}
 
@@ -124,6 +127,7 @@ func calculateReportsSummaries(iterationReports [][]report) []ReportsSummary {
 				summary.FailCount++
 			} else if report.Garbage {
 				summary.GarbageCount++
+				summary.GarbageReasons = append(summary.GarbageReasons, report.GarbageReason)
 			} else {
 				summary.SuccessCount++
 			}
@@ -169,6 +173,7 @@ func hit(idx int) report {
 	report.ExecutionTime = time.Since(startTime)
 	if err != nil {
 		report.Garbage = true
+		report.GarbageReason = fmt.Sprintf("%v", err)
 		return report
 	}
 	defer res.Body.Close()
