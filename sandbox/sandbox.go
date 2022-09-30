@@ -12,12 +12,11 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
-	"sofi/file"
 	"strings"
 	"time"
 )
 
-type SandboxTest struct {
+type SandboxFile struct {
 	Code     []byte
 	FileName string
 }
@@ -31,7 +30,7 @@ type Sandbox struct {
 	ContainerID      string
 	SourceVolumePath string
 	fileName         string
-	tests            []SandboxTest
+	tests            []SandboxFile
 }
 
 type Output struct {
@@ -42,7 +41,7 @@ type Output struct {
 
 var hostVolumePath = path.Join(os.Getenv("APP_CONTAINER_PATH"), "volume")
 
-func NewSandbox(language string, code []byte, sandboxTests []SandboxTest) (*Sandbox, error) {
+func NewSandbox(language string, mainCode []byte, files []SandboxFile, sandboxTests []SandboxFile) (*Sandbox, error) {
 	uid, err := uuid.NewUUID()
 	if err != nil {
 		return nil, err
@@ -76,9 +75,17 @@ func NewSandbox(language string, code []byte, sandboxTests []SandboxTest) (*Sand
 
 	fileName := "app" + lang.Ext
 	filePath := path.Join(sourceVolumePath, fileName)
-	err = ioutil.WriteFile(filePath, code, 0755)
+	err = ioutil.WriteFile(filePath, mainCode, 0755)
 	if err != nil {
 		return nil, err
+	}
+
+	for _, file := range files {
+		filePath := path.Join(sourceVolumePath, file.FileName)
+		err = ioutil.WriteFile(filePath, file.Code, 0755)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	testCommandAppendix := ""
@@ -97,17 +104,6 @@ func NewSandbox(language string, code []byte, sandboxTests []SandboxTest) (*Sand
 
 	lang.TestCommand = strings.Replace(lang.TestCommand, "{}", testCommandAppendix, 1)
 	lang.TestCommand = strings.Replace(lang.TestCommand, "{}", fileName, 1)
-
-	jest := "jest.config.js"
-	jestPath := path.Join(sourceVolumePath, jest)
-	jestCode, err := file.ExtractCodeOfFile(jestPath)
-	if err != nil {
-		fmt.Errorf("something went wrong while reading the file %s", jestPath)
-	}
-	err = ioutil.WriteFile(jestPath, []byte(jestCode), 0755)
-	if err != nil {
-		return nil, err
-	}
 
 	return &Sandbox{
 		ctx:              ctx,
