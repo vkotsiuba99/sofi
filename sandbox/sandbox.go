@@ -33,9 +33,10 @@ type Sandbox struct {
 }
 
 type Output struct {
-	Error     bool
-	ExecBody  string
-	TestsBody string
+	Error         bool
+	ExecBody      string
+	ExecutionTime time.Duration
+	TestsBody     string
 }
 
 var hostVolumePath = path.Join(os.Getenv("APP_CONTAINER_PATH"), "volume")
@@ -127,6 +128,7 @@ type RunOutput struct {
 
 func (s *Sandbox) Run() (RunOutput, error) {
 	id, err := s.containerPort.CreateContainer(s.ctx, s.Language.Image, s.UUID, s.SourceVolumePath)
+
 	if err != nil {
 		return RunOutput{}, err
 	}
@@ -164,10 +166,16 @@ func (s *Sandbox) setupEnvironment() (*Output, error) {
 	return &Output{}, nil
 }
 
-func (s *Sandbox) ExecCmdInSandbox(cmd string) (string, error) {
+type ExecCmdResult struct {
+	result        string
+	executionTime time.Duration
+}
+
+func (s *Sandbox) ExecCmdInSandbox(cmd string) (ExecCmdResult, error) {
+	now := time.Now()
 	hr, err := s.containerPort.ExecuteCommand(s.ctx, s.ContainerID, cmd, s.Language.Env)
 	if err != nil {
-		return "", err
+		return ExecCmdResult{}, err
 	}
 	defer hr.Close()
 
@@ -181,7 +189,10 @@ func (s *Sandbox) ExecCmdInSandbox(cmd string) (string, error) {
 		}
 	}
 
-	return respBody, nil
+	return ExecCmdResult{
+		result:        respBody,
+		executionTime: time.Since(now),
+	}, nil
 }
 
 func (s *Sandbox) Execute(cmd, fileName string, executeTests bool) (*Output, error) {
@@ -206,7 +217,7 @@ func (s *Sandbox) Execute(cmd, fileName string, executeTests bool) (*Output, err
 		}, err
 	}
 
-	testBody := ""
+	/*testBody := ""
 	if executeTests && len(s.Language.TestCommand) != 0 {
 		testBody, err = s.ExecCmdInSandbox(s.Language.TestCommand)
 		if err != nil {
@@ -216,12 +227,13 @@ func (s *Sandbox) Execute(cmd, fileName string, executeTests bool) (*Output, err
 				TestsBody: err.Error(),
 			}, nil
 		}
-	}
+	}*/
 
 	return &Output{
-		Error:     false,
-		ExecBody:  execOutput,
-		TestsBody: testBody,
+		Error:         false,
+		ExecBody:      execOutput.result,
+		ExecutionTime: execOutput.executionTime,
+		TestsBody:     "",
 	}, nil
 }
 
