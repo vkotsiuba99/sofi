@@ -7,6 +7,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/google/uuid"
 	"io/ioutil"
+	"log"
 	"os"
 	"path"
 	"sofi/internal"
@@ -127,6 +128,7 @@ type RunOutput struct {
 }
 
 func (s *Sandbox) Run() (RunOutput, error) {
+	start := time.Now()
 	id, err := s.containerPort.CreateContainer(s.ctx, s.Language.Image, s.UUID, s.SourceVolumePath)
 
 	if err != nil {
@@ -134,7 +136,10 @@ func (s *Sandbox) Run() (RunOutput, error) {
 	}
 
 	s.ContainerID = id
+	duration := time.Since(start)
+	log.Println("creating container time:", duration)
 
+	start = time.Now()
 	if err := s.containerPort.StartContainer(s.ctx, s.ContainerID); err != nil {
 		return RunOutput{}, err
 	}
@@ -143,16 +148,21 @@ func (s *Sandbox) Run() (RunOutput, error) {
 	if err != nil {
 		return RunOutput{}, err
 	}
+	duration = time.Since(start)
+	log.Println("starting container time:", duration)
 
 	output := RunOutput{SetupOutput: setupOutput}
 	if setupOutput.Error {
 		return output, nil
 	}
 
+	start = time.Now()
 	runOutput, err := s.Execute("", "", true)
 	if err != nil {
 		return output, err
 	}
+	duration = time.Since(start)
+	log.Println("execution time:", duration)
 
 	output.RunOutput = runOutput
 	return output, nil
