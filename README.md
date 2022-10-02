@@ -15,10 +15,11 @@ Currently it supports the following languages:
 
 For the installation of sofi, you need to have Docker and Go installed.
 
-If you want to have the latest sofi image on your machine, execute the [`build_sofi_image.sh`](https://github.com/vkotsiuba99/sofi/tree/master/build/build_sofi_image.sh) script.
+It is required for the sandbox environment to have a all-in-one image that includes all the functionality for executing the code in a docker container. For that, you need to create and build the image in `build/all-in-one-ubuntu`. You can do that by executing the `create-image` command in the `Makefile` or by executing:
 
-In addition, you need to pull the latest images by executing [`pull_images.sh`](https://github.com/vkotsiuba99/sofi/tree/master/build/pull_images.sh). This will pull all the docker images that are being used by sofi. This step should only be executed once.
-
+```sh
+docker build build/all-in-one-ubuntu -t all-in-one-ubuntu
+```
 ## Usage
 
 You can feel free to run the CLI by executing the `main.go` file in the root directory with the following command:
@@ -42,10 +43,10 @@ The following section contains all the commands and flags that can be used while
     The execute command will execute code in a containerized sandbox.
   </p>
 
-  | Flag | Aliases | Description | Default |
-  |---|---|---|---|
-  | --language | -l, -lang | Set the language for the kira sandbox runner. | python |
-  | --main | -m | Set the main file that should be executed first. | example code in runner struct |
+  | Flag | Aliases | Description                                         | Default |
+  |---|-----------------------------------------------------|---|---|
+  | --language | -l, -lang | Set the language for the sofi sandbox runner.       | python |
+  | --main | -m | Set the main file that should be executed first.    | example code in runner struct |
   | --dir | -d | Set the specific directory that should be executed. | example code in runner struct |
 </details>
 
