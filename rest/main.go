@@ -102,7 +102,7 @@ func main() {
 	server := http.Server{
 		Addr:         address,
 		Handler:      handlers.CORS(originsOk, headersOk, methodsOk)(router),
-		ReadTimeout:  5 * time.Second,
+		ReadTimeout:  0,
 		WriteTimeout: 0,
 		IdleTimeout:  0,
 	}
