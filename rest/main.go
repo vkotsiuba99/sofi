@@ -4,7 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"log"
 	"os"
-	"sofi/pkg"
+	"sofi/internal"
 	"sofi/rest/routes"
 )
 
@@ -13,18 +13,18 @@ var local = false // TODO: Change to env variable.
 
 func main() {
 	if !local {
-		err := pkg.CreateRunners()
+		err := internal.CreateRunners()
 		if err != nil {
 			logger.Fatalf("Error while trying to create runners: %v+", err)
 		}
 
-		err = pkg.CreateUsers()
+		err = internal.CreateUsers()
 		if err != nil {
 			logger.Fatalf("Error while trying to create users: %v+", err)
 		}
 	}
 
-	err := pkg.LoadLanguages()
+	err := internal.LoadLanguages()
 	if err != nil {
 		logger.Fatalf("Error while loading languages: %v+", err)
 	}
