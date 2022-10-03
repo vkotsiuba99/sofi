@@ -9,7 +9,7 @@ import (
 )
 
 var logger *log.Logger = log.New(os.Stdout, "api: ", log.LstdFlags|log.Lshortfile)
-var local = true // TODO: Change to env variable.
+var local = false // TODO: Change to env variable.
 
 func main() {
 	if !local {
@@ -31,6 +31,7 @@ func main() {
 
 	e := echo.New()
 	e.GET("/languages", routes.Languages)
+	e.POST("/execute", routes.Execute)
 
 	e.Logger.Fatal(e.Start(":9090"))
 }
