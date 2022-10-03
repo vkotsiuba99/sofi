@@ -20,6 +20,7 @@ type CodeOutput struct {
 	User        string
 	TempDirName string
 	Result      string
+	Error       string
 }
 
 func RunCode(lang, code string) (CodeOutput, error) {
@@ -46,12 +47,13 @@ func RunCode(lang, code string) (CodeOutput, error) {
 		return CodeOutput{}, err
 	}
 
-	output := executeFile(currentUser, filename, language)
+	output, errorString := executeFile(currentUser, filename, language)
 
 	return CodeOutput{
 		User:        currentUser,
 		TempDirName: tempDirName,
 		Result:      output,
+		Error:       errorString,
 	}, nil
 }
 
@@ -67,7 +69,7 @@ func CleanUp(currentUser, tempDirName string) {
 	}
 }
 
-func executeFile(currentUser, file string, language Language) string {
+func executeFile(currentUser, file string, language Language) (string, string) {
 	script := fmt.Sprintf("/sofi/languages/%s/run.sh", strings.ToLower(language.Name))
 
 	run := exec.Command("/bin/bash", script, currentUser, file)
@@ -85,17 +87,15 @@ func executeFile(currentUser, file string, language Language) string {
 	_ = run.Wait()
 	_ = head.Wait()
 
-	var result string
+	result := ""
 
 	if headOutput.Len() > 0 {
 		result = headOutput.String()
 	} else if headOutput.Len() == 0 && errBuffer.Len() == 0 {
 		result = headOutput.String()
-	} else {
-		result = errBuffer.String()
 	}
 
-	return result
+	return result, errBuffer.String()
 }
 
 func cleanProcesses(currentUser string) error {
