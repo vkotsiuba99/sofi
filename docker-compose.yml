@@ -1,0 +1,10 @@
+version: '3.7'
+
+services:
+  sofi:
+    build: '.'
+    container_name: sofi
+    ports:
+      - 9090:9090
+    cap_add:
+      - LINUX_IMMUTABLE
