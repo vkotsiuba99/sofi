@@ -60,17 +60,17 @@
 
 ```
 Architecture: x86_64
-CPUs: 4
-Total Memory: 7.775GiB
-Memory Used: ~11% (measured through Digital Ocean Monitoring)
+CPUs: 1
+Total Memory: 1.941GiB
+Memory Used: ~23% (measured through Digital Ocean Monitoring)
 ```
 
 ```
 []main.reportsSummary{
   main.reportsSummary{
-    MaxExecutionTimeMs: 9113,
-    AvgExecutionTimeMs: 5547,
-    MinExecutionTimeMs: 2031,
+    MaxExecutionTimeMs: 1507,
+    AvgExecutionTimeMs: 1440,
+    MinExecutionTimeMs: 966,
     TotalCount:         40,
     GarbageCount:       0,
     FailCount:          0,
@@ -81,9 +81,9 @@ Memory Used: ~11% (measured through Digital Ocean Monitoring)
     GarbageReasons:     []string{},
   },
   main.reportsSummary{
-    MaxExecutionTimeMs: 18073,
-    AvgExecutionTimeMs: 9967,
-    MinExecutionTimeMs: 2133,
+    MaxExecutionTimeMs: 2872,
+    AvgExecutionTimeMs: 2737,
+    MinExecutionTimeMs: 92,
     TotalCount:         80,
     GarbageCount:       0,
     FailCount:          0,
@@ -94,9 +94,9 @@ Memory Used: ~11% (measured through Digital Ocean Monitoring)
     GarbageReasons:     []string{},
   },
   main.reportsSummary{
-    MaxExecutionTimeMs: 17159,
-    AvgExecutionTimeMs: 9672,
-    MinExecutionTimeMs: 2093,
+    MaxExecutionTimeMs: 3041,
+    AvgExecutionTimeMs: 2793,
+    MinExecutionTimeMs: 163,
     TotalCount:         80,
     GarbageCount:       0,
     FailCount:          0,
@@ -107,9 +107,9 @@ Memory Used: ~11% (measured through Digital Ocean Monitoring)
     GarbageReasons:     []string{},
   },
   main.reportsSummary{
-    MaxExecutionTimeMs: 18149,
-    AvgExecutionTimeMs: 10017,
-    MinExecutionTimeMs: 2044,
+    MaxExecutionTimeMs: 3347,
+    AvgExecutionTimeMs: 3201,
+    MinExecutionTimeMs: 355,
     TotalCount:         80,
     GarbageCount:       0,
     FailCount:          0,
