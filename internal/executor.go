@@ -46,6 +46,7 @@ func (rce *RceEngine) RunCode(lang, code string, retries int) (CodeOutput, error
 
 	err = CreateTempDir(user.username, tempDirName)
 	if err != nil {
+		rce.systemUsers.Release(user.uid)
 		if retries == 0 {
 			return CodeOutput{}, nil
 		}
@@ -55,6 +56,7 @@ func (rce *RceEngine) RunCode(lang, code string, retries int) (CodeOutput, error
 
 	filename, err := CreateTempFile(user.username, tempDirName, language.Extension)
 	if err != nil {
+		rce.systemUsers.Release(user.uid)
 		if retries == 0 {
 			return CodeOutput{}, nil
 		}
@@ -65,6 +67,7 @@ func (rce *RceEngine) RunCode(lang, code string, retries int) (CodeOutput, error
 
 	err = WriteToFile(filename, code)
 	if err != nil {
+		rce.systemUsers.Release(user.uid)
 		return CodeOutput{}, err
 	}
 
