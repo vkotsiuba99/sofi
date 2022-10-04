@@ -1,6 +1,6 @@
 module sofi
 
-go 1.18
+go 1.19
 
 require github.com/yudai/pp v2.0.1+incompatible
 
