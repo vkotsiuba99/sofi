@@ -2,6 +2,7 @@ version: '3.7'
 
 services:
   sofi:
+    restart: always
     build: '.'
     container_name: sofi
     ports:
