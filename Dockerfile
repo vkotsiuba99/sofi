@@ -6,5 +6,6 @@ RUN apt-get update --fix-missing \
 
 WORKDIR /sofi
 COPY . .
+RUN go mod tidy
 RUN go build -o main rest/main.go
 CMD ["/sofi/main"]
