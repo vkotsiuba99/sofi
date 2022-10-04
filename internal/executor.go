@@ -30,11 +30,12 @@ func RunCode(lang, code string, retries int) (CodeOutput, error) {
 	}
 
 	currentUser := fmt.Sprintf("user%d", user)
+	updateUser()
+
 	tempDirName := uuid.New().String()
 
 	err = CreateTempDir(currentUser, tempDirName)
 	if err != nil {
-		updateUser()
 		if retries == 0 {
 			return CodeOutput{}, nil
 		}
@@ -44,7 +45,6 @@ func RunCode(lang, code string, retries int) (CodeOutput, error) {
 
 	filename, err := CreateTempFile(currentUser, tempDirName, language.Extension)
 	if err != nil {
-		updateUser()
 		if retries == 0 {
 			return CodeOutput{}, nil
 		}
@@ -72,12 +72,10 @@ func CleanUp(currentUser, tempDirName string) {
 	DeleteTempDir(currentUser, tempDirName)
 	cleanProcesses(currentUser)
 	restoreUserDir(currentUser)
-
-	updateUser()
 }
 
 func updateUser() {
-	if user >= 3 {
+	if user >= 100 {
 		user = 1
 	} else {
 		user++
@@ -87,6 +85,7 @@ func updateUser() {
 func executeFile(currentUser, file string, language Language) (string, string) {
 	script := fmt.Sprintf("/sofi/languages/%s/run.sh", strings.ToLower(language.Name))
 
+	fmt.Printf("Executing as %s\n", currentUser)
 	run := exec.Command("/bin/bash", script, currentUser, file)
 	head := exec.Command("head", "--bytes", maxOutputBufferCapacity)
 
