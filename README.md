@@ -4,7 +4,7 @@ sofi is a remote docker based sandbox code execution engine written in Go.
 
 Currently it supports the following languages:
 
-`python`, `javascript`, `golang`
+`python`, `javascript`, `golang`, `java`
 
 ## Installation
 
