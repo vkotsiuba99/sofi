@@ -17,7 +17,7 @@ type executeResponse struct {
 	Error  string `json:"error"`
 }
 
-func Execute(c echo.Context) error {
+func Execute(c echo.Context, rceEngine *internal.RceEngine) error {
 	body := executeBody{}
 
 	defer c.Request().Body.Close()
@@ -27,7 +27,7 @@ func Execute(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	output, err := internal.RunCode(body.Language, body.Content, 1)
+	output, err := rceEngine.RunCode(body.Language, body.Content, 1)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -37,6 +37,6 @@ func Execute(c echo.Context) error {
 		Error:  output.Error,
 	})
 
-	internal.CleanUp(output.User, output.TempDirName)
+	rceEngine.CleanUp(output.User, output.TempDirName)
 	return nil
 }
