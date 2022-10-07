@@ -5,6 +5,7 @@ go 1.19
 require github.com/yudai/pp v2.0.1+incompatible
 
 require (
+	github.com/go-redis/redis v6.15.9+incompatible // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
