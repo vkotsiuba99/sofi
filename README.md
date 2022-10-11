@@ -43,6 +43,9 @@ This JSON structure is an example for the request body:
       "content": "print(\"42 Hello World\")"
   }
   ```
+
+You can also add an optional query parameter called `bypass_cache` and set it to `true`,
+if you want to bypass the cache.
 </details>
 
 <details>
