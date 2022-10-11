@@ -5,6 +5,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"net/http"
 	"sofi/internal"
+	"strconv"
 )
 
 type executeBody struct {
@@ -27,7 +28,15 @@ func Execute(c echo.Context, rceEngine *internal.RceEngine) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	output, err := rceEngine.Dispatch(body.Language, body.Content)
+	bypassCacheStr := c.QueryParam("bypass_cache")
+	bypassCache, err := strconv.ParseBool(bypassCacheStr)
+	if len(bypassCacheStr) == 0 {
+		bypassCache = false
+	} else if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+
+	output, err := rceEngine.Dispatch(body.Language, body.Content, bypassCache)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
@@ -36,6 +45,5 @@ func Execute(c echo.Context, rceEngine *internal.RceEngine) error {
 		Output: output.Result,
 		Error:  output.Error,
 	})
-
 	return nil
 }
