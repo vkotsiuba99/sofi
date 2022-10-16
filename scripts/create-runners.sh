@@ -7,6 +7,6 @@ chgrp -R runners /sofi/languages/
 
 # Manages control of users running any sort of script.
 # Removes read, write, and execute permission for the runners group.
-chmod g-rwx /sofi/languages/
+chmod o-rwx /sofi/
 # Add execute privilege for the runners group.
 chmod g+x /sofi/languages/
