@@ -14,8 +14,10 @@ type executeBody struct {
 }
 
 type executeResponse struct {
-	Output string `json:"output"`
-	Error  string `json:"error"`
+	CompileOutput string `json:"compileOutput"`
+	CompileError  string `json:"compileError"`
+	RunOutput     string `json:"runOutput"`
+	RunError      string `json:"runError"`
 }
 
 func Execute(c echo.Context, rceEngine *internal.RceEngine) error {
@@ -42,8 +44,10 @@ func Execute(c echo.Context, rceEngine *internal.RceEngine) error {
 	}
 
 	c.JSON(http.StatusOK, executeResponse{
-		Output: output.Result,
-		Error:  output.Error,
+		CompileOutput: output.CompileResult,
+		CompileError:  output.CompileError,
+		RunOutput:     output.RunResult,
+		RunError:      output.RunError,
 	})
 	return nil
 }
