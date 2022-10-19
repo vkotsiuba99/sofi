@@ -9,6 +9,7 @@ import (
 	"sofi/internal/cache"
 	"sofi/internal/pool"
 	"strings"
+	"time"
 )
 
 const (
@@ -82,13 +83,19 @@ func (rce *RceEngine) action(lang, code string, bypassCache bool, ch chan<- pool
 
 	var compileOutput, compileErrorString string
 	var runOutput, runErrorString string
+	var compileTime time.Duration
+	var runTime time.Duration
 
 	if language.Compiled {
+		now := time.Now()
 		compileOutput, compileErrorString = rce.compileFile(filename, executableFilename, language)
+		compileTime = time.Since(now)
 	}
 
 	if len(compileErrorString) == 0 {
+		now := time.Now()
 		runOutput, runErrorString = rce.executeFile(user.Username, filename, executableFilename, language)
+		runTime = time.Since(now)
 	}
 
 	codeOutput := pool.CodeOutput{
@@ -96,8 +103,10 @@ func (rce *RceEngine) action(lang, code string, bypassCache bool, ch chan<- pool
 		TempDirName:   tempDirName,
 		CompileResult: compileOutput,
 		CompileError:  compileErrorString,
+		CompileTime:   compileTime,
 		RunResult:     runOutput,
 		RunError:      runErrorString,
+		RunTime:       runTime,
 	}
 
 	ch <- codeOutput
