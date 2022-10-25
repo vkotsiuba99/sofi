@@ -5,11 +5,13 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"time"
 )
 
 var (
-	Logger *zap.Logger
-	db     *Database
+	Logger         *zap.Logger
+	db             *Database
+	collectionName string
 )
 
 func NewLogger() (*zap.Logger, error) {
@@ -17,13 +19,14 @@ func NewLogger() (*zap.Logger, error) {
 		return Logger, nil
 	}
 
-	db = NewDatabase("logs")
+	collectionName = "logs_" + time.Now().Format(time.RFC3339)
+	db = NewDatabase(collectionName)
 	err := db.Connect()
 	if err != nil {
 		return nil, err
 	}
 
-	err = db.InitDatabase()
+	err = db.CreateCollection()
 	if err != nil {
 		return nil, err
 	}
@@ -40,6 +43,11 @@ func NewLogger() (*zap.Logger, error) {
 
 	Logger = zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
 	return Logger, nil
+}
+
+func RotateDatabase() error {
+	collectionName = "logs_" + time.Now().Format(time.RFC3339)
+	return db.CreateCollection()
 }
 
 func CloseLogger() {
