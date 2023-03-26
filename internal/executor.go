@@ -64,7 +64,7 @@ func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
 		return
 	}
 
-	filename, err := CreateTempFile(user.Username, tempDirName, "code", language.Extension)
+	filename, err := CreateTempFile(user.Username, tempDirName, "app", language.Extension)
 	if err != nil {
 		rce.systemUsers.Release(user.Uid)
 		DeleteAll(user.Username)
@@ -79,8 +79,9 @@ func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
 		return
 	}
 
+	testFilename := ""
 	if len(data.Test) != 0 {
-		testFilename, err := CreateTempFile(user.Username, tempDirName, "code_test", language.Extension)
+		testFilename, err = CreateTempFile(user.Username, tempDirName, "app_test", language.Extension)
 		if err != nil {
 			rce.systemUsers.Release(user.Uid)
 			DeleteAll(user.Username)
@@ -96,7 +97,7 @@ func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
 		}
 	}
 
-	executableFilename := ExecutableFile(user.Username, tempDirName, "code")
+	executableFilename := ExecutableFile(user.Username, tempDirName, "app")
 	codeOutput := pool.CodeOutput{User: *user, TempDirName: tempDirName}
 
 	if language.Compiled {
@@ -122,9 +123,14 @@ func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
 
 	// If the length of the test content is not empty, run the tests in the directory.
 	if len(data.Test) != 0 {
+		now := time.Now()
 		executableFilename := ExecutableFile(user.Username, tempDirName, "code_test")
-		// TODO: Refactor to have custom fields in sending output.
-		fmt.Println(rce.executeTestsForFile(user.Username, filename, executableFilename, language))
+		testOutput, testError := rce.executeTestsForFile(user.Username, testFilename, executableFilename, language)
+		codeOutput.TestOutput = pool.Output{
+			Result: testOutput,
+			Error:  testError,
+			Time:   time.Since(now).Milliseconds(),
+		}
 	}
 
 	ch <- codeOutput
