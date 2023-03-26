@@ -11,6 +11,7 @@ import (
 type executeBody struct {
 	Language string `json:"language" binding:"required"`
 	Content  string `json:"content" binding:"required"`
+	Test     string `json:"test,omitempty"`
 }
 
 type executeResponse struct {
@@ -23,7 +24,10 @@ type executeResponse struct {
 }
 
 func Execute(c echo.Context, rceEngine *internal.RceEngine) error {
-	body := executeBody{}
+	// Setting default values so that the optional fields are not empty.
+	body := executeBody{
+		Test: "",
+	}
 
 	defer c.Request().Body.Close()
 
@@ -40,7 +44,7 @@ func Execute(c echo.Context, rceEngine *internal.RceEngine) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	output, err := rceEngine.Dispatch(body.Language, body.Content, bypassCache)
+	output, err := rceEngine.Dispatch(body.Language, body.Content, body.Test, bypassCache)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
