@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"github.com/labstack/echo/v4"
 	"net/http"
-	"sofi/internal"
 	"sofi/internal/pool"
+	"sofi/pkg"
 	"strconv"
 )
 
@@ -22,7 +22,7 @@ type executeResponse struct {
 	TestOutput    pool.TestOutput `json:"testOutput"`
 }
 
-func Execute(c echo.Context, rceEngine *internal.RceEngine) error {
+func Execute(c echo.Context, rceEngine *pkg.RceEngine) error {
 	// Setting default values so that the optional fields are not empty.
 	body := executeBody{
 		Tests: []pool.TestResult{},

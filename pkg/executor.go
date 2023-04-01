@@ -1,4 +1,4 @@
-package internal
+package pkg
 
 import (
 	"bytes"
@@ -6,6 +6,7 @@ import (
 	"github.com/google/uuid"
 	"os"
 	"os/exec"
+	"sofi/internal"
 	"sofi/internal/cache"
 	"sofi/internal/pool"
 	"strings"
@@ -58,29 +59,29 @@ func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
 
 	tempDirName := uuid.New().String()
 
-	err = CreateTempDir(user.Username, tempDirName)
+	err = internal.CreateTempDir(user.Username, tempDirName)
 	if err != nil {
 		rce.systemUsers.Release(user.Uid)
 		ch <- pool.CodeOutput{}
 		return
 	}
 
-	filename, err := CreateTempFile(user.Username, tempDirName, "app", language.Extension)
+	filename, err := internal.CreateTempFile(user.Username, tempDirName, "app", language.Extension)
 	if err != nil {
 		rce.systemUsers.Release(user.Uid)
-		DeleteAll(user.Username)
+		internal.DeleteAll(user.Username)
 		ch <- pool.CodeOutput{}
 		return
 	}
 
-	err = WriteToFile(filename, data.Code)
+	err = internal.WriteToFile(filename, data.Code)
 	if err != nil {
 		rce.systemUsers.Release(user.Uid)
 		ch <- pool.CodeOutput{}
 		return
 	}
 
-	executableFilename := ExecutableFile(user.Username, tempDirName, "app")
+	executableFilename := internal.ExecutableFile(user.Username, tempDirName, "app")
 	codeOutput := pool.CodeOutput{User: *user, TempDirName: tempDirName}
 
 	if language.Compiled {
@@ -164,7 +165,7 @@ func (rce *RceEngine) Dispatch(lang, code string, stdin []string, tests []pool.T
 }
 
 func (rce *RceEngine) CleanUp(user *pool.User, tempDirName string) {
-	DeleteAll(user.Username)
+	internal.DeleteAll(user.Username)
 	rce.cleanProcesses(user.Username)
 	rce.restoreUserDir(user.Username)
 	rce.systemUsers.Release(user.Uid)

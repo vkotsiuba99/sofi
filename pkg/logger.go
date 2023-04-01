@@ -1,4 +1,4 @@
-package internal
+package pkg
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"go.uber.org/zap/zapcore"
 	"log"
 	"os"
+	"sofi/internal"
 	"time"
 )
 
@@ -22,7 +23,7 @@ const (
 
 var (
 	Logger  *zap.Logger
-	db      *Database
+	db      *internal.Database
 	cronJob *cron.Cron
 	// An internal logger that does only log functionalities like rotating.
 	logger *log.Logger = log.New(os.Stdout, "language: ", log.LstdFlags|log.Lshortfile)
@@ -36,7 +37,7 @@ func NewLogger(rotation string) (*zap.Logger, error) {
 	}
 
 	// Create new database with new collection inside.
-	db = NewDatabase()
+	db = internal.NewDatabase()
 	err := db.Connect()
 	if err != nil {
 		return nil, err
@@ -108,7 +109,7 @@ type logValues struct {
 // mongoWriter implements the `io.Writer` interface and it is being used for logging to
 // mongodb.
 type mongoWriter struct {
-	database *Database
+	database *internal.Database
 }
 
 func (mw mongoWriter) Write(p []byte) (n int, err error) {

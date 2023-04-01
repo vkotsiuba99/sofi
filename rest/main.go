@@ -8,7 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sofi/internal"
+	"sofi/pkg"
 	"sofi/rest/routes"
 	"strings"
 )
@@ -35,22 +35,22 @@ func main() {
 	origins := loadEnv(os.Getenv("ORIGINS"))
 	activeLanguages := loadEnv(os.Getenv("LANGUAGES"))
 
-	err = internal.CreateRunners()
+	err = pkg.CreateRunners()
 	if err != nil {
 		logger.Fatalf("Error while trying to create runners: %v+", err)
 	}
 
-	err = internal.CreateUsers()
+	err = pkg.CreateUsers()
 	if err != nil {
 		logger.Fatalf("Error while trying to create users: %v+", err)
 	}
 
-	err = internal.LoadLanguages(activeLanguages)
+	err = pkg.LoadLanguages(activeLanguages)
 	if err != nil {
 		logger.Fatalf("Error while loading languages: %v+", err)
 	}
 
-	err = internal.CreateBinaries()
+	err = pkg.CreateBinaries()
 	if err != nil {
 		logger.Fatalf("Error while creating binaries: %v+", err)
 	}
@@ -75,20 +75,20 @@ func main() {
 		AllowHeaders: []string{echo.HeaderOrigin, echo.HeaderContentType, echo.HeaderAccept},
 	}))
 	e.Use(middleware.BodyDump(func(ctx echo.Context, reqBody, resBody []byte) {
-		internal.Logger.Info(
+		pkg.Logger.Info(
 			"request",
 			zap.String("requestBody", string(reqBody)),
 			zap.String("responseBody", string(resBody)),
 		)
 	}))
 
-	rce := internal.NewRceEngine()
+	rce := pkg.NewRceEngine()
 
-	if _, err = internal.NewLogger(internal.ROTATE_WEEK); err != nil {
+	if _, err = pkg.NewLogger(pkg.ROTATE_WEEK); err != nil {
 		logger.Fatalf("Error while creating logger: %v+", err)
 	}
 	logger.Println("Successfully created logger and connected to database.")
-	defer internal.CloseLogger()
+	defer pkg.CloseLogger()
 
 	// Define REST endpoints.
 	e.GET("/languages", routes.Languages)
