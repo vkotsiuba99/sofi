@@ -40,10 +40,11 @@ func NewRceEngine() *RceEngine {
 	}
 }
 
-func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
+func (rce *RceEngine) action(data pool.WorkData, output pool.ActionOutput, terminate chan<- bool) {
+	// Get the language by the name.
 	language, err := GetLanguageByName(data.Lang)
 	if err != nil {
-		ch <- pool.CodeOutput{}
+		terminate <- true
 		return
 	}
 
@@ -53,7 +54,10 @@ func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
 		cacheOutput, err = rce.cache.Get(language.Name, data.Code)
 
 		if err == nil {
-			ch <- cacheOutput
+			if output.Once != nil {
+				output.Once <- cacheOutput
+			}
+			terminate <- true
 			return
 		}
 	}
@@ -62,7 +66,7 @@ func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
 	user, err := rce.systemUsers.Acquire()
 	if err != nil {
 		rce.systemUsers.Release(user.Uid)
-		ch <- pool.CodeOutput{}
+		terminate <- true
 		return
 	}
 
@@ -72,7 +76,7 @@ func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
 	err = internal.CreateTempDir(user.Username, tempDirName)
 	if err != nil {
 		rce.systemUsers.Release(user.Uid)
-		ch <- pool.CodeOutput{}
+		terminate <- true
 		return
 	}
 
@@ -81,7 +85,7 @@ func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
 	if err != nil {
 		rce.systemUsers.Release(user.Uid)
 		internal.DeleteAll(user.Username)
-		ch <- pool.CodeOutput{}
+		terminate <- true
 		return
 	}
 
@@ -89,7 +93,7 @@ func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
 	err = internal.WriteToFile(filename, data.Code)
 	if err != nil {
 		rce.systemUsers.Release(user.Uid)
-		ch <- pool.CodeOutput{}
+		terminate <- true
 		return
 	}
 
@@ -161,7 +165,11 @@ func (rce *RceEngine) action(data pool.WorkData, ch chan<- pool.CodeOutput) {
 		}
 	}
 
-	ch <- codeOutput
+	if output.Once != nil {
+		output.Once <- codeOutput
+	}
+
+	terminate <- true
 
 	if !data.BypassCache {
 		rce.cache.Set(language.Name, data.Code, codeOutput)
@@ -236,13 +244,36 @@ func (rce *RceEngine) ExecuteWs(code, lang string, data chan<- string, terminate
 	rce.CleanUp(user, tempDirName)
 }
 
-// Dispatch dispatches a new job to the worker pool and returns the output of the
+type PipeChannel struct {
+	data      chan<- string
+	terminate chan<- bool
+}
+
+// DispatchOnce dispatches a new job to the worker pool and returns the output of the
 // submitted job.
-func (rce *RceEngine) Dispatch(lang, code string, stdin []string, tests []pool.TestResult, bypassCache bool) (pool.CodeOutput, error) {
-	dataChannel := make(chan pool.CodeOutput)
-	rce.pool.SubmitJob(pool.WorkData{Lang: lang, Code: code, Stdin: stdin, Tests: tests, BypassCache: bypassCache}, rce.action, dataChannel)
-	output := <-dataChannel
-	return output, nil
+func (rce *RceEngine) DispatchOnce(data pool.WorkData) pool.CodeOutput {
+	return rce.Dispatch(data, PipeChannel{})
+}
+
+func (rce *RceEngine) Dispatch(data pool.WorkData, pipeChannel PipeChannel) pool.CodeOutput {
+	terminate := make(chan bool)
+	if pipeChannel != (PipeChannel{}) {
+		// Allow websocket connection.
+		return pool.CodeOutput{}
+	} else {
+		// Allow one full execution.
+		actionOutput := pool.ActionOutput{Once: make(chan pool.CodeOutput)}
+		rce.pool.SubmitJob(data, rce.action, actionOutput, terminate)
+		currentOutput := pool.CodeOutput{}
+		for {
+			select {
+			case output := <-actionOutput.Once:
+				currentOutput = output
+			case <-terminate:
+				return currentOutput
+			}
+		}
+	}
 }
 
 // CleanUp cleans up the user's temporary directory, kills all running processes for this
