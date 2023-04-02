@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/net/websocket"
+	"sofi/internal/pool"
 	"sofi/pkg"
 )
 
@@ -18,8 +19,6 @@ type wsResponse struct {
 
 func ExecuteWs(c echo.Context, rceEngine *pkg.RceEngine) error {
 	websocket.Handler(func(ws *websocket.Conn) {
-		dataCh := make(chan string)
-		terminateCh := make(chan bool)
 		defer ws.Close()
 
 		// Receive and parse send JSON data from the client.
@@ -31,14 +30,24 @@ func ExecuteWs(c echo.Context, rceEngine *pkg.RceEngine) error {
 		}
 
 		// Execute the code of the client.
-		go rceEngine.ExecuteWs(data.Content, data.Language, dataCh, terminateCh)
+		pipeChannel := pkg.PipeChannel{
+			Data:      make(chan string),
+			Terminate: make(chan bool),
+		}
+		go rceEngine.DispatchStream(pool.WorkData{
+			Lang:        data.Language,
+			Code:        data.Content,
+			Stdin:       []string{},
+			Tests:       []pool.TestResult{},
+			BypassCache: true,
+		}, pipeChannel)
 
 		for {
 			select {
-			case shouldTerminate := <-terminateCh:
+			case shouldTerminate := <-pipeChannel.Terminate:
 				fmt.Println("terminate", shouldTerminate)
 				return
-			case output := <-dataCh:
+			case output := <-pipeChannel.Data:
 				// Send the result of the code back to the client.
 				err = websocket.JSON.Send(ws, wsResponse{
 					RunOutput: output,
