@@ -16,10 +16,13 @@ type Database struct {
 	collectionName string
 }
 
+// NewDatabase creates an empty database struct.
 func NewDatabase() *Database {
 	return &Database{}
 }
 
+// Connect connects the database to `mongodb://database:27017` and sets up the client to
+// this database. It also initializes the `client` in the database struct.
 func (d *Database) Connect() error {
 	client, err := mongo.NewClient(options.Client().ApplyURI(mongoURI))
 	if err != nil {
@@ -33,6 +36,7 @@ func (d *Database) Connect() error {
 		return err
 	}
 
+	// Check if the client is reachable.
 	err = client.Ping(context.Background(), readpref.Primary())
 	if err != nil {
 		return err
@@ -42,6 +46,9 @@ func (d *Database) Connect() error {
 	return nil
 }
 
+// CreateCollection creates a new collection in the database `sofi`. It also sets the `db`
+// database struct field. When the creation of the collection returns an error, it will
+// return this error in this function.
 func (d *Database) CreateCollection(collectionName string) error {
 	d.collectionName = collectionName
 
@@ -58,6 +65,8 @@ func (d *Database) CreateCollection(collectionName string) error {
 	return nil
 }
 
+// Insert inserts a specific log to the database. If something went wrong while inserting
+// the entry into the database, it will return the error.
 func (d *Database) Insert(log interface{}) (interface{}, error) {
 	logs := d.db.Collection(d.collectionName)
 	result, err := logs.InsertOne(context.Background(), log)
@@ -68,6 +77,7 @@ func (d *Database) Insert(log interface{}) (interface{}, error) {
 	return result, nil
 }
 
+// Disconnect closes the connection to the database.
 func (d *Database) Disconnect() {
 	d.client.Disconnect(context.Background())
 }
