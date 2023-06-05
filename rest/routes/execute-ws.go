@@ -40,8 +40,9 @@ func ExecuteWs(c echo.Context, rceEngine *pkg.RceEngine) error {
 
 		// Execute the code of the client.
 		pipeChannel := pkg.PipeChannel{
-			Data:      make(chan string),
-			Terminate: make(chan bool),
+			Data:                 make(chan string),
+			Terminate:            make(chan bool),
+			ExecutionInformation: make(chan pool.ExecutionInformation),
 		}
 		go rceEngine.DispatchStream(pool.WorkData{
 			Lang:        data.Language,
@@ -50,6 +51,9 @@ func ExecuteWs(c echo.Context, rceEngine *pkg.RceEngine) error {
 			Tests:       []pool.TestResult{},
 			BypassCache: true,
 		}, pipeChannel)
+
+		// Initialize later.
+		var executionInformation pool.ExecutionInformation
 
 		// Handles the manual termination of the code execution.
 		go func(ws *websocket.Conn, terminateChannel chan<- bool) {
@@ -69,12 +73,15 @@ func ExecuteWs(c echo.Context, rceEngine *pkg.RceEngine) error {
 
 			if data.Event == "terminate" {
 				terminateChannel <- true
+				rceEngine.CleanUp(executionInformation.User, executionInformation.TempDirName)
 				return
 			}
 		}(ws, pipeChannel.Terminate)
 
 		for {
 			select {
+			case execInformation := <-pipeChannel.ExecutionInformation:
+				executionInformation = execInformation
 			case output := <-pipeChannel.Data:
 				response := wsResponse{
 					Type:      "output",
