@@ -8,6 +8,7 @@ import (
 	"golang.org/x/net/websocket"
 	"sofi/internal/pool"
 	"sofi/pkg"
+	"strings"
 )
 
 type socketData struct {
@@ -19,6 +20,10 @@ type socketData struct {
 type wsResponse struct {
 	Type      string `json:"type"`
 	RunOutput string `json:"runOutput"`
+}
+
+type wsMessage struct {
+	Event string `json:"event"`
 }
 
 func ExecuteWs(c echo.Context, rceEngine *pkg.RceEngine) error {
@@ -45,6 +50,28 @@ func ExecuteWs(c echo.Context, rceEngine *pkg.RceEngine) error {
 			Tests:       []pool.TestResult{},
 			BypassCache: true,
 		}, pipeChannel)
+
+		// Handles the manual termination of the code execution.
+		go func(ws *websocket.Conn, terminateChannel chan<- bool) {
+			// Endless for loop to receive messages from the client is currently not needed.
+			data := wsMessage{}
+			err = websocket.JSON.Receive(ws, &data)
+			if err != nil {
+				// TODO: Maybe remove in the future, there is currently no other way to check if
+				// the connection was closed by the client.
+				if strings.Contains(err.Error(), "use of closed network connection") {
+					return
+				}
+
+				fmt.Println("receiving error:", err)
+				return
+			}
+
+			if data.Event == "terminate" {
+				terminateChannel <- true
+				return
+			}
+		}(ws, pipeChannel.Terminate)
 
 		for {
 			select {
