@@ -91,6 +91,14 @@ func ExecuteWs(c echo.Context, rceEngine *pkg.RceEngine) error {
 								break Executor
 							}
 
+							// Reset the execution information and pool channel.
+							executionInformation = pool.ExecutionInformation{}
+							pipeChannel = pkg.PipeChannel{
+								Data:                 make(chan pool.StreamOutput),
+								Terminate:            make(chan bool),
+								ExecutionInformation: make(chan pool.ExecutionInformation),
+							}
+
 							logResponse(data, response)
 							break Executor
 						}
@@ -115,7 +123,6 @@ func ExecuteWs(c echo.Context, rceEngine *pkg.RceEngine) error {
 				pipeChannel.Terminate <- true
 				rceEngine.CleanUp(executionInformation.User, executionInformation.TempDirName)
 			}
-
 		}
 	}).ServeHTTP(c.Response(), c.Request())
 
